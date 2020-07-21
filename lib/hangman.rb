@@ -17,43 +17,58 @@
 #   check for a winner
 require "pry"
 module Playable
-  
-  def winner?(array)
-    true if !array.include?('_')
-  end
-
   def select_random_word
     dictionary = File.read('5desk.txt').split
-    valid_words = dictionary.select { |word| word.length > 3 && word.length < 13 }
+    valid_words = dictionary.select {|word| word.length > 3 && word.length < 13}
   
       #removes proper nouns (first letter must be lowercase)
-    valid_words = valid_words.select { |word| /[[:lower:]]/.match(word[0]) }
+    valid_words = valid_words.select {|word| /[[:lower:]]/.match(word[0])}
     valid_words.sample
   end
 
-  def display_board(array, word)
+  def check_for_matches(array, word)
     current_board = Array.new(word.length, '_')
     word.split('').each_with_index do |letter, i|
       current_board[i] = letter if array.include?(letter)
     end
-    current_board.join(' ')
+    puts current_board.join(' ')
+  end
+
+  def winner?(letters_guessed, secret_word)
+    letters = secret_word.split('')
+    matches = letters.count {|letter| letters_guessed.include?(letter)}
+    matches == secret_word.length
   end
 end
 
 class Game
   include Playable
-  @letters_guessed = []
-
-  attr_accessor :secret_word
-
+  
+  attr_accessor :secret_word, :letters_guessed
+  
   def initialize
     @secret_word = select_random_word
+    @letters_guessed = []
   end
 
+  def get_guess
+    puts "Guess a letter"
+    guess = gets.chomp.downcase 
+
+    #ensures guess is one letter a-z
+    if !guess.match? /\A[a-zA-Z]{1}\z/ then get_guess end
+    letters_guessed.push(guess)
+  end
   
+  def play_game
+    12.times do 
+      get_guess
+      check_for_matches(letters_guessed, secret_word)
+      break if winner?(letters_guessed, secret_word)
+    end
+  end
 end
 
 game = Game.new
 p game.secret_word
-guesses = ['a', 'e', 'i', 'o']
-p game.display_board(guesses, game.secret_word)
+game.play_game
