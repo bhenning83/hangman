@@ -30,11 +30,20 @@ module Playable
     valid_words = valid_words.select { |word| /[[:lower:]]/.match(word[0]) }
     valid_words.sample
   end
+
+  def display_board(array, word)
+    current_board = Array.new(word.length, '_')
+    word.split('').each_with_index do |letter, i|
+      current_board[i] = letter if array.include?(letter)
+    end
+    current_board.join(' ')
+  end
 end
 
 class Game
   include Playable
-  
+  @letters_guessed = []
+
   attr_accessor :secret_word
 
   def initialize
@@ -46,3 +55,5 @@ end
 
 game = Game.new
 p game.secret_word
+guesses = ['a', 'e', 'i', 'o']
+p game.display_board(guesses, game.secret_word)
