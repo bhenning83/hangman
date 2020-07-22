@@ -77,16 +77,20 @@ class Game
   end
   
   def play_game
+    puts Array.new(secret_word.length, '_').join(' ') #displays empty tiles
     while @lives_left > 0 do 
       puts "\n\n#{@lives_left} lives remaining"
       puts "already guessed: #{letters_guessed.join(' ')}"
       get_guess
       check_for_matches(letters_guessed, secret_word)
-      break if winner?(letters_guessed, secret_word)
+      if winner?(letters_guessed, secret_word)
+        puts "You win!"
+        exit
+      end
     end
+    puts "You lose! The word was #{secret_word}"
   end
 end
 
 game = Game.new
-p game.secret_word
 game.play_game
