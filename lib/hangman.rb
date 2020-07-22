@@ -15,14 +15,14 @@
 #   search through word to see if the letter is included
 #   either deduct from lives remaining or replace the dash in word display
 #   check for a winner
-require "pry"
+require 'pry'
 module Playable
   def select_random_word
     dictionary = File.read('5desk.txt').split
-    valid_words = dictionary.select {|word| word.length > 3 && word.length < 13}
-  
-      #removes proper nouns (first letter must be lowercase)
-    valid_words = valid_words.select {|word| /[[:lower:]]/.match(word[0])}
+    valid_words = dictionary.select { |word| word.length > 3 && word.length < 13 }
+
+    # removes proper nouns (first letter must be lowercase)
+    valid_words = valid_words.select { |word| /[[:lower:]]/.match(word[0]) }
     valid_words.sample
   end
 
@@ -36,17 +36,16 @@ module Playable
 
   def winner?(letters_guessed, secret_word)
     letters = secret_word.split('')
-    matches = letters.count {|letter| letters_guessed.include?(letter)}
+    matches = letters.count { |letter| letters_guessed.include?(letter) }
     matches == secret_word.length
   end
-
 end
 
 class Game
   include Playable
-  
+
   attr_accessor :secret_word, :letters_guessed, :lives_left
-  
+
   def initialize
     @secret_word = select_random_word
     @letters_guessed = []
@@ -55,10 +54,10 @@ class Game
 
   def get_guess
     guess = ''
-    #ensures guess is one letter a-z
-    until guess.match? /\A[a-zA-Z]{1}\z/ 
-      puts "Guess a letter"
-      guess = gets.chomp.downcase 
+    # ensures guess is one letter a-z
+    until guess.match?(/\A[a-zA-Z]{1}\z/)
+      puts 'Guess a letter'
+      guess = gets.chomp.downcase
     end
     if already_guessed?(guess)
       guess = ''
@@ -73,18 +72,18 @@ class Game
   end
 
   def match?(guess)
-    @lives_left -= 1 if !secret_word.include?(guess)
+    @lives_left -= 1 unless secret_word.include?(guess)
   end
-  
+
   def play_game
-    puts Array.new(secret_word.length, '_').join(' ') #displays empty tiles
-    while @lives_left > 0 do 
+    puts Array.new(secret_word.length, '_').join(' ') # displays empty tiles
+    while @lives_left.positive?
       puts "\n\n#{@lives_left} lives remaining"
       puts "already guessed: #{letters_guessed.join(' ')}"
       get_guess
       check_for_matches(letters_guessed, secret_word)
       if winner?(letters_guessed, secret_word)
-        puts "You win!"
+        puts 'You win!'
         exit
       end
     end
