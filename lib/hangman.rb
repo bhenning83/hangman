@@ -39,29 +39,48 @@ module Playable
     matches = letters.count {|letter| letters_guessed.include?(letter)}
     matches == secret_word.length
   end
+
 end
 
 class Game
   include Playable
   
-  attr_accessor :secret_word, :letters_guessed
+  attr_accessor :secret_word, :letters_guessed, :lives_left
   
   def initialize
     @secret_word = select_random_word
     @letters_guessed = []
+    @lives_left = 6
   end
 
   def get_guess
     puts "Guess a letter"
+    
+    #empties string in case of multiple inputs
+    guess = ""
     guess = gets.chomp.downcase 
 
     #ensures guess is one letter a-z
     if !guess.match? /\A[a-zA-Z]{1}\z/ then get_guess end
+    check_already_guessed(guess)
     letters_guessed.push(guess)
+    match?(guess)
+  end
+
+  def check_already_guessed(guess)
+    if letters_guessed.include?(guess) 
+      puts "already guessed"
+      get_guess
+    end
+  end
+
+  def match?(guess)
+    @lives_left -= 1 if !secret_word.include?(guess)
   end
   
   def play_game
-    12.times do 
+    while @lives_left > 0 do 
+      puts "\n\n#{@lives_left} lives remaining"
       get_guess
       check_for_matches(letters_guessed, secret_word)
       break if winner?(letters_guessed, secret_word)
