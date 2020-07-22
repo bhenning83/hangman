@@ -31,7 +31,7 @@ module Playable
     word.split('').each_with_index do |letter, i|
       current_board[i] = letter if array.include?(letter)
     end
-    puts current_board.join(' ')
+    puts "\n\n#{current_board.join(' ')}"
   end
 
   def winner?(letters_guessed, secret_word)
@@ -54,24 +54,22 @@ class Game
   end
 
   def get_guess
-    puts "Guess a letter"
-    
-    #empties string in case of multiple inputs
-    guess = ""
-    guess = gets.chomp.downcase 
-
+    guess = ''
     #ensures guess is one letter a-z
-    if !guess.match? /\A[a-zA-Z]{1}\z/ then get_guess end
-    check_already_guessed(guess)
+    until guess.match? /\A[a-zA-Z]{1}\z/ 
+      puts "Guess a letter"
+      guess = gets.chomp.downcase 
+    end
+    if already_guessed?(guess)
+      guess = ''
+      get_guess
+    end
     letters_guessed.push(guess)
     match?(guess)
   end
 
-  def check_already_guessed(guess)
-    if letters_guessed.include?(guess) 
-      puts "already guessed"
-      get_guess
-    end
+  def already_guessed?(guess)
+    letters_guessed.include?(guess)
   end
 
   def match?(guess)
@@ -81,6 +79,7 @@ class Game
   def play_game
     while @lives_left > 0 do 
       puts "\n\n#{@lives_left} lives remaining"
+      puts "already guessed: #{letters_guessed.join(' ')}"
       get_guess
       check_for_matches(letters_guessed, secret_word)
       break if winner?(letters_guessed, secret_word)
