@@ -105,14 +105,16 @@ class Game
     if @guess == 'save'
       @guess = ''
       save
-    end
-    get_guess if already_guessed?(@guess)
+    elsif already_guessed?
+      @guess = ''
+      get_guess
+    else
     letters_guessed.push(@guess)
+    end
   end
 
-  def already_guessed?(guess)
-    guess = ''
-    letters_guessed.include?(guess)
+  def already_guessed?
+    letters_guessed.include?(@guess)
   end
 
   def match?(letter)
