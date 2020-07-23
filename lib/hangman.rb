@@ -59,12 +59,6 @@ module Savable
     save_name = gets.chomp
     stream = to_json
     saved_game = File.open(@path + save_name, 'w') { |f| f.puts stream}
-  end
-  
-  def ask_to_save
-    puts "\nDo you want to save? yes/no"
-    return nil unless gets.chomp.downcase == 'yes'
-    save
     puts "Game saved. Do you want to quit your game? yes/no"
     exit if gets.chomp.downcase == 'yes'
   end
@@ -99,36 +93,38 @@ class Game
     @letters_guessed = []
     @lives_left = 6
     @path = '/Users/brendonhenning/the_odin_project/ruby/hangman/saves/'
+    @guess = ''
   end
 
   def get_guess
-    guess = ''
-    # ensures guess is one letter a-z
-    until guess.match?(/\A[a-zA-Z]{1}\z/) || guess == 'save'
-      puts 'Guess a letter or type \'save\' to save'
-      guess = gets.chomp.strip.downcase
+    # ensures guess is one letter a-z or prompting to save
+    until @guess.match?(/\A[a-zA-Z]{1}\z/) || @guess.match?('save')
+      puts 'Guess a letter or type \'save\' to save game.'
+      @guess = gets.chomp.strip.downcase
     end
-    if already_guessed?(guess)
-      guess = ''
-      get_guess
+    if @guess == 'save'
+      @guess = ''
+      save
     end
-    letters_guessed.push(guess)
-    match?(guess)
+    get_guess if already_guessed?(@guess)
+    letters_guessed.push(@guess)
   end
 
   def already_guessed?(guess)
+    guess = ''
     letters_guessed.include?(guess)
   end
 
-  def match?(guess)
-    @lives_left -= 1 unless secret_word.include?(guess)
+  def match?(letter)
+    @lives_left -= 1 unless secret_word.include?(letter)
   end
 
   def play_turn
     puts "\n\n#{@lives_left} lives remaining"
     puts "already guessed: #{letters_guessed.join(' ')}"
-    ask_to_save
+    @guess = ''
     get_guess
+    match?(@guess)
     check_for_matches(letters_guessed, secret_word)
     winner(letters_guessed, secret_word)
   end
