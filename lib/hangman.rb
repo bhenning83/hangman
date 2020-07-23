@@ -38,33 +38,32 @@ module Playable
   def winner(letters_guessed, secret_word)
     letters = secret_word.split('')
     matches = letters.count { |letter| letters_guessed.include?(letter) }
-    if matches == secret_word.length
-      puts 'You win!'
-        exit
-    end
+    return unless matches == secret_word.length
+    puts 'You win!'
+    exit
   end
 end
 
 module Savable
-  def to_json
-    JSON.dump ({
-      :secret_word => secret_word,
-      :letters_guessed => letters_guessed,
-      :lives_left => lives_left
-    })
+  def to_json(*_args)
+    JSON.dump({
+                secret_word: secret_word,
+                letters_guessed: letters_guessed,
+                lives_left: lives_left
+              })
   end
 
   def save
     puts 'Enter a name for your saved game.'
     save_name = gets.chomp
     stream = to_json
-    saved_game = File.open(@path + save_name, 'w') { |f| f.puts stream}
-    puts "Game saved. Do you want to quit your game? yes/no"
+    File.open(@path + save_name, 'w') { |f| f.puts stream }
+    puts 'Game saved. Do you want to quit your game? yes/no'
     exit if gets.chomp.downcase == 'yes'
   end
-  
+
   def load
-    puts "What is the name of your saved game?"
+    puts 'What is the name of your saved game?'
     answer = gets.chomp
     save = File.read(@path + answer)
     data = JSON.parse(save)
@@ -75,11 +74,11 @@ module Savable
   end
 
   def ask_to_load
-    puts "Do you want to start a new game or continue a saved game? new/continue"
+    puts 'Do you want to start a new game or continue a saved game? new/continue'
     return nil unless gets.chomp.strip.downcase == 'continue'
+
     load
   end
-
 end
 
 class Game
@@ -96,7 +95,7 @@ class Game
     @guess = ''
   end
 
-  def get_guess
+  def select_letter
     # ensures guess is one letter a-z or prompting to save
     until @guess.match?(/\A[a-zA-Z]{1}\z/) || @guess.match?('save')
       puts 'Guess a letter or type \'save\' to save game.'
@@ -107,9 +106,9 @@ class Game
       save
     elsif already_guessed?
       @guess = ''
-      get_guess
+      select_letter
     else
-    letters_guessed.push(@guess)
+      letters_guessed.push(@guess)
     end
   end
 
@@ -125,7 +124,7 @@ class Game
     puts "\n\n#{@lives_left} lives remaining"
     puts "already guessed: #{letters_guessed.join(' ')}"
     @guess = ''
-    get_guess
+    select_letter
     match?(@guess)
     check_for_matches(letters_guessed, secret_word)
     winner(letters_guessed, secret_word)
@@ -133,17 +132,12 @@ class Game
 
   def play_game
     ask_to_load
-    if letters_guessed.length == 0
+    if letters_guessed.empty?
       puts Array.new(secret_word.length, '_').join(' ') # displays empty tiles for new game
     end
-    while @lives_left.positive?
-      play_turn
-    end
+    play_turn while @lives_left.positive?
     puts "You lose! The word was #{secret_word}"
   end
-
-
-  
 end
 
 game = Game.new
