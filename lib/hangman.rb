@@ -16,6 +16,7 @@
 #   either deduct from lives remaining or replace the dash in word display
 #   check for a winner
 require 'pry'
+require 'json'
 module Playable
   def select_random_word
     dictionary = File.read('5desk.txt').split
@@ -34,15 +35,62 @@ module Playable
     puts "\n\n#{current_board.join(' ')}"
   end
 
-  def winner?(letters_guessed, secret_word)
+  def winner(letters_guessed, secret_word)
     letters = secret_word.split('')
     matches = letters.count { |letter| letters_guessed.include?(letter) }
-    matches == secret_word.length
+    if matches == secret_word.length
+      puts 'You win!'
+        exit
+    end
   end
+end
+
+module Savable
+  def to_json
+    JSON.dump ({
+      :secret_word => secret_word,
+      :letters_guessed => letters_guessed,
+      :lives_left => lives_left
+    })
+  end
+
+  def save
+    puts 'Enter a name for your saved game.'
+    save_name = gets.chomp
+    stream = to_json
+    saved_game = File.open(@path + save_name, 'w') { |f| f.puts stream}
+  end
+  
+  def ask_to_save
+    puts "\nDo you want to save? yes/no"
+    return nil unless gets.chomp.downcase == 'yes'
+    save
+    puts "Game saved. Do you want to quit your game? yes/no"
+    exit if gets.chomp.downcase == 'yes'
+  end
+  
+  def load
+    puts "What is the name of your saved game?"
+    answer = gets.chomp
+    save = File.read(@path + answer)
+    data = JSON.parse(save)
+    @secret_word = data['secret_word']
+    @letters_guessed = data['letters_guessed']
+    @lives_left = data['lives_left']
+    check_for_matches(letters_guessed, secret_word)
+  end
+
+  def ask_to_load
+    puts "Do you want to start a new game or continue a saved game? new/continue"
+    return nil unless gets.chomp.strip.downcase == 'continue'
+    load
+  end
+
 end
 
 class Game
   include Playable
+  include Savable
 
   attr_accessor :secret_word, :letters_guessed, :lives_left
 
@@ -50,14 +98,15 @@ class Game
     @secret_word = select_random_word
     @letters_guessed = []
     @lives_left = 6
+    @path = '/Users/brendonhenning/the_odin_project/ruby/hangman/saves/'
   end
 
   def get_guess
     guess = ''
     # ensures guess is one letter a-z
-    until guess.match?(/\A[a-zA-Z]{1}\z/)
-      puts 'Guess a letter'
-      guess = gets.chomp.downcase
+    until guess.match?(/\A[a-zA-Z]{1}\z/) || guess == 'save'
+      puts 'Guess a letter or type \'save\' to save'
+      guess = gets.chomp.strip.downcase
     end
     if already_guessed?(guess)
       guess = ''
@@ -75,20 +124,28 @@ class Game
     @lives_left -= 1 unless secret_word.include?(guess)
   end
 
+  def play_turn
+    puts "\n\n#{@lives_left} lives remaining"
+    puts "already guessed: #{letters_guessed.join(' ')}"
+    ask_to_save
+    get_guess
+    check_for_matches(letters_guessed, secret_word)
+    winner(letters_guessed, secret_word)
+  end
+
   def play_game
-    puts Array.new(secret_word.length, '_').join(' ') # displays empty tiles
+    ask_to_load
+    if letters_guessed.length == 0
+      puts Array.new(secret_word.length, '_').join(' ') # displays empty tiles for new game
+    end
     while @lives_left.positive?
-      puts "\n\n#{@lives_left} lives remaining"
-      puts "already guessed: #{letters_guessed.join(' ')}"
-      get_guess
-      check_for_matches(letters_guessed, secret_word)
-      if winner?(letters_guessed, secret_word)
-        puts 'You win!'
-        exit
-      end
+      play_turn
     end
     puts "You lose! The word was #{secret_word}"
   end
+
+
+  
 end
 
 game = Game.new
