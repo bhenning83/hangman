@@ -1,21 +1,3 @@
-# When game is initalized, select a random word from 5desk
-# Check to make sure word is bigger than 4 letters and less than 12
-# create an array populated with a number of dashes equal to the length of the word
-# allow user to guess a letter
-# create array to keep track of letters guessed
-# if the word includes the letter, replace the dash at that letter's index
-#   -if no more dashes in array are found, game ends, display winner message
-# if the letter is not found in the word, deduct from the lives remaining tally
-#  -if lives remaining reaches zero, game ends, display loser message
-
-# Each round:
-#   get guess from user
-#   check if it's valid (just one a-z letter)
-#   add letter to letters_guessed array
-#   search through word to see if the letter is included
-#   either deduct from lives remaining or replace the dash in word display
-#   check for a winner
-require 'pry'
 require 'json'
 module Playable
   def select_random_word
