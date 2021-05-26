@@ -1,4 +1,5 @@
 require 'json'
+require 'pry'
 module Playable
   def select_random_word
     dictionary = File.read('5desk.txt').split
